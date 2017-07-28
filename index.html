@@ -9,7 +9,35 @@
 
 <body>
 	<h1>Yandex Test</h1>
-	<p>Autor: Sergei Tumanov</p>
+	<p style="text-align:right;">Sergei Tumanov</p>
+	<form id="myForm">
+		<table class="form_table">
+			<tr>
+				<td>ФИО</td>
+				<td>
+					<input type="text" name="fio" size="100" class="form_field">
+				</input></td>
+			</tr>
+			<tr>
+				<td>Email</td>
+				<td>
+					<input type="text" name="email" class="form_field"></input>
+				</td>
+			</tr>
+			<tr>
+				<td>Телефон</td>
+				<td>
+					<input type="text" name="phone" class="form_field"></input>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="right">
+					<input type="submit"></input>
+				</td>
+			</tr>
+		</table>
+		<p id="resultParagraph" style="visibility:hidden;">Результат:<div id="resultContainer"></div></p>
+	</form>
 </body>
 
 </html>

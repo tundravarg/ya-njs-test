@@ -7,3 +7,19 @@ h1, h2, h3 {
 	color: #FFF;
 	text-align: center;
 }
+
+table.form_table {
+	table-layout: auto;
+	width: 100%;
+}
+
+/*table, tr, td {
+	border-style: solid;
+	border-width: 1px;
+	border-collapse: collapse;
+}*/
+
+input.form_field {
+	width: 100%;
+	box-sizing: border-box;
+}
