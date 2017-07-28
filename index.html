@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="main.css">
+	<script type="application/ecmascript" src="/lib/jquery.js"></script>
 	<script type="application/ecmascript" src="index.js"></script>
 	<title>Yandex Test (Tumanov Sergei)</title>
 </head>
@@ -13,30 +14,35 @@
 	<form id="myForm">
 		<table class="form_table">
 			<tr>
-				<td>ФИО</td>
+				<td>ФИО:</td>
 				<td>
 					<input type="text" name="fio" size="100" class="form_field">
 				</input></td>
 			</tr>
 			<tr>
-				<td>Email</td>
+				<td>Email:</td>
 				<td>
 					<input type="text" name="email" class="form_field"></input>
 				</td>
 			</tr>
 			<tr>
-				<td>Телефон</td>
+				<td>Телефон:</td>
 				<td>
 					<input type="text" name="phone" class="form_field"></input>
 				</td>
 			</tr>
 			<tr>
 				<td colspan="2" align="right">
-					<input type="submit"></input>
+					<input type="button" id="submitButton" value="Ok"></input>
+				</td>
+			</tr>
+			<tr id="resultParagraph" style="visibility:hidden;">
+				<td>Результат:</td>
+				<td>
+					<div id="resultContainer"></div>
 				</td>
 			</tr>
 		</table>
-		<p id="resultParagraph" style="visibility:hidden;">Результат:<div id="resultContainer"></div></p>
 	</form>
 </body>
 
