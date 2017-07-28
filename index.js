@@ -1,5 +1,4 @@
 $(() => {
-	console.log('Document loaded');
 	$('#submitButton').click(() => {
 		var result = MyForm.validate();
 		if (result.isValid) {
@@ -38,12 +37,6 @@ function setResult(result) {
 
 
 
-function checkExists() {
-	return Array.from(arguments).every(e => !!e && e.length);
-}
-
-
-
 MyForm = {
 
 	validate: function() {
@@ -70,12 +63,69 @@ MyForm = {
 	submit: function() {
 		var data = this.getData();
 //		this.setData({ fio: data.fio + '-1', email: data.email + '-2', phone: data.phone + '-3' });
-		$.get('/data/success.json', (data) => {
-			console.log('---answer: ' + data);
-			setResult('Success');
+
+		var url = serverEmulator.getUrl();
+		$.get(url, (data) => {
+			var status = isNotNull(data.status) ? data.status.toLowerCase(data.status) : null;
+			var result = "";
+			switch (data.status) {
+				case 'success':
+					result = 'Success';
+					break;
+				case 'error':
+					result = 'Error: ' + data.reason;
+					break;
+				case 'progress':
+					var timeout = data.timeout;
+					result = `In progress (${++this._progressCount}): ${timeout}ms`;
+					if (timeout) {
+						setTimeout(this.submit.bind(this), Number(timeout));
+					}
+					break;
+				default:
+					result = 'Unknown status: ' + data.status;
+					break;
+			}
+			if (!status == 'progress') {
+				this._progressCount = 0;
+			}
+			setResult(entitifyString(result));
 		}).fail((e) => {
 			setResult('Error in answer');
 		});
+	},
+
+	_progressCount: 0
+
+};
+
+
+
+var serverEmulator = {
+
+	URL_SUCCESS:  '/data/success.json',
+	URL_ERROR:    '/data/error.json',
+	URL_PROGRESS: '/data/progress.json',
+	URL_INVALID_1: '/data/invalid_1.json',
+
+	getUrl: function() {
+		return this.URL_PROGRESS;
 	}
 
 };
+
+
+
+function checkExists() {
+	return Array.from(arguments).every(e => !!e && e.length);
+}
+
+function isNotNull(obj) {
+	return typeof obj !== 'undefined' && obj != null;
+}
+
+function entitifyString(str) {
+	var p = document.createElement("p");
+	p.textContent = str;
+	return p.innerHTML;
+}
