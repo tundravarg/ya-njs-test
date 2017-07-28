@@ -63,39 +63,54 @@ MyForm = {
 	submit: function() {
 		var data = this.getData();
 //		this.setData({ fio: data.fio + '-1', email: data.email + '-2', phone: data.phone + '-3' });
+		submitter.submit(data);
+	}
 
+};
+
+
+
+var submitter = {
+
+	submitCount: 0,
+
+	submit: function(data) {
+		var submitCount = ++this.submitCount;
+		var progressCount = 1;
 		var url = serverEmulator.getUrl();
-		$.get(url, (data) => {
-			var status = isNotNull(data.status) ? data.status.toLowerCase(data.status) : null;
-			var result = "";
-			switch (data.status) {
-				case 'success':
-					result = 'Success';
-					break;
-				case 'error':
-					result = 'Error: ' + data.reason;
-					break;
-				case 'progress':
-					var timeout = data.timeout;
-					result = `In progress (${++this._progressCount}): ${timeout}ms`;
-					if (timeout) {
-						setTimeout(this.submit.bind(this), Number(timeout));
-					}
-					break;
-				default:
-					result = 'Unknown status: ' + data.status;
-					break;
+		function submit2() {
+			if (submitCount != this.submitCount) {
+				return;
 			}
-			if (!status == 'progress') {
-				this._progressCount = 0;
-			}
-			setResult(entitifyString(result));
-		}).fail((e) => {
-			setResult('Error in answer');
-		});
-	},
-
-	_progressCount: 0
+			$.get(url, (data) => {
+				var status = isNotNull(data.status) ? data.status.toLowerCase(data.status) : null;
+				var result = "";
+				switch (data.status) {
+					case 'success':
+						result = 'Success';
+						break;
+					case 'error':
+						result = 'Error: ' + data.reason;
+						break;
+					case 'progress':
+						var timeout = data.timeout;
+						result = `In progress (${progressCount}): ${timeout}ms`;
+						progressCount++;
+						if (timeout) {
+							setTimeout(submit2.bind(this), Number(timeout));
+						}
+						break;
+					default:
+						result = 'Unknown status: ' + data.status;
+						break;
+				}
+				setResult(entitifyString(result));
+			}).fail((e) => {
+				setResult('Error in answer');
+			});
+		}
+		submit2.call(this);
+	}
 
 };
 
