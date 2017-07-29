@@ -1,3 +1,11 @@
+'use strict';
+
+
+
+(function() {
+
+
+
 $(() => {
 	$('#submitButton').click(() => {
 		var result = MyForm.validate();
@@ -50,7 +58,7 @@ function setResult(resultType, message) {
 
 
 
-MyForm = {
+window.MyForm = {
 
 	validate: function() {
 		return { isValid: true, errorFields: [] };
@@ -169,3 +177,8 @@ function setRadioClass(jqElement, classes, klass) {
 	});
 	jqElement.addClass(klass);
 }
+
+
+
+})();
+
