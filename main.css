@@ -23,3 +23,15 @@ input.form_field {
 	width: 100%;
 	box-sizing: border-box;
 }
+
+#resultContainer.success {
+	color: #0F0;
+}
+
+#resultContainer.error {
+	color: #F00;
+}
+
+#resultContainer.progress {
+	color: #FF0;
+}

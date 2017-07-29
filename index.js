@@ -24,15 +24,28 @@ function getFormFields() {
 	};
 };
 
-function setResult(result) {
+const RESULT_CLASSES = [
+	
+];
+
+var RESULT_CLASS = {
+	SUCCESS: 'success',
+	PROGRESS: 'progress',
+	ERROR: 'error'
+};
+
+function setResult(resultType, message) {
 	var resultParagraph = $('#resultParagraph');
 	var resultContainer = $('#resultContainer');
 	if (!checkExists(resultParagraph, resultContainer)) {
 		setResult('Internal error');
 		throw new Error('Some fields are not found');
 	}
+
 	resultParagraph.css('visibility', 'visible');
-	resultContainer.html(result);
+
+	setRadioClass(resultContainer, Object.values(RESULT_CLASS), resultType);
+	resultContainer.html(message);
 }
 
 
@@ -84,16 +97,20 @@ var submitter = {
 			}
 			$.get(url, (data) => {
 				var status = isNotNull(data.status) ? data.status.toLowerCase(data.status) : null;
+				var resultType = "";
 				var result = "";
 				switch (data.status) {
 					case 'success':
+						resultType = RESULT_CLASS.SUCCESS;
 						result = 'Success';
 						break;
 					case 'error':
+						resultType = RESULT_CLASS.ERROR;
 						result = 'Error: ' + data.reason;
 						break;
 					case 'progress':
 						var timeout = data.timeout;
+						resultType = RESULT_CLASS.PROGRESS;
 						result = `In progress (${progressCount}): ${timeout}ms`;
 						progressCount++;
 						if (timeout) {
@@ -101,12 +118,13 @@ var submitter = {
 						}
 						break;
 					default:
+						resultType = RESULT_CLASS.ERROR;
 						result = 'Unknown status: ' + data.status;
 						break;
 				}
-				setResult(entitifyString(result));
+				setResult(resultType, entitifyString(result));
 			}).fail((e) => {
-				setResult('Error in answer');
+				setResult(RESULT_CLASS.ERROR, 'Error in answer');
 			});
 		}
 		submit2.call(this);
@@ -124,7 +142,7 @@ var serverEmulator = {
 	URL_INVALID_1: '/data/invalid_1.json',
 
 	getUrl: function() {
-		return this.URL_PROGRESS;
+		return this.URL_SUCCESS;
 	}
 
 };
@@ -143,4 +161,11 @@ function entitifyString(str) {
 	var p = document.createElement("p");
 	p.textContent = str;
 	return p.innerHTML;
+}
+
+function setRadioClass(jqElement, classes, klass) {
+	classes.forEach((c) => {
+		jqElement.removeClass(c);
+	});
+	jqElement.addClass(klass);
 }
