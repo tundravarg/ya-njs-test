@@ -11,6 +11,8 @@ $(() => {
 		var result = MyForm.validate();
 		if (result.isValid) {
 			MyForm.submit();
+		} else {
+			setResult(RESULT_CLASS.ERROR, 'Wrong fields');
 		}
 	});
 });
@@ -31,10 +33,6 @@ function getFormFields() {
 		phoneField: phoneField
 	};
 };
-
-const RESULT_CLASSES = [
-	
-];
 
 var RESULT_CLASS = {
 	SUCCESS: 'success',
@@ -58,11 +56,53 @@ function setResult(resultType, message) {
 
 
 
+const FIO_RE = /^\s*(\w+)\s+(\w+)\s+(\w+)\s*$/;
+
+const EMAIL_RE = /^[\w\.\-]+@(?:ya\.ru|yandex\.ru|yandex\.ua|yandex\.by|yandex\.kz|yandex\.com)$/;
+
+const PHONE_RE = /^\+7\(\d\d\d\)\d\d\d-\d\d-\d\d$/;
+function checkPhone(phone) {
+	if (!PHONE_RE.test(phone)) {
+		return false;
+	}
+	var summa = 0;
+	for (let i = 0, n = phone.length; i < n; i++) {
+		let c = phone[i];
+		if (c >= '0' && c <= '9') {
+			summa += Number(c);
+		}
+	}
+	return summa <= 30;
+}
+
+
+
 window.MyForm = {
 
 	validate: function() {
-		return { isValid: true, errorFields: [] };
-		// return { isValid: Boolean, errorFields: String[] }
+		const data = this.getData();
+		
+		const errorFields = [];
+
+		{ // Validate fio
+			if (!FIO_RE.test(data.fio)) {
+				errorFields.push('fio');
+			}
+		}
+
+		{ // validate email
+			if (!EMAIL_RE.test(data.email)) {
+				errorFields.push('email');
+			}
+		}
+
+		{ // validate phone
+			if (!checkPhone(data.phone)) {
+				errorFields.push('phone');
+			}
+		}
+
+		return {isValid: errorFields.length == 0, errorFields: errorFields};
 	}, 
 	
 	getData: function() {
