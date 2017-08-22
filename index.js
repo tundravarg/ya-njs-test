@@ -1,7 +1,6 @@
 'use strict';
 
 
-
 (function() {
 
 
@@ -9,10 +8,25 @@
 $(() => {
 	$('#submitButton').click(() => {
 		var result = MyForm.validate();
+
 		if (result.isValid) {
-			MyForm.submit();
+			setResult(null);
 		} else {
 			setResult(RESULT_CLASS.ERROR, 'Wrong fields');
+		}
+		const fields = getFormFields();
+		Object.keys(fields).forEach((k) => {
+			const field = fields[k];
+			const name = field.attr('name');
+			if (result.errorFields.some(n => n == name)) {
+				field.addClass('error');
+			} else {
+				field.removeClass('error');
+			}
+		});
+
+		if (result.isValid) {
+			MyForm.submit();
 		}
 	});
 });
@@ -51,7 +65,7 @@ function setResult(resultType, message) {
 	resultParagraph.css('visibility', 'visible');
 
 	setRadioClass(resultContainer, Object.values(RESULT_CLASS), resultType);
-	resultContainer.html(message);
+	resultContainer.html(message || '');
 }
 
 
@@ -215,7 +229,9 @@ function setRadioClass(jqElement, classes, klass) {
 	classes.forEach((c) => {
 		jqElement.removeClass(c);
 	});
-	jqElement.addClass(klass);
+	if (klass) {
+		jqElement.addClass(klass);
+	}
 }
 
 

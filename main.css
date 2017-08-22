@@ -24,6 +24,10 @@ input.form_field {
 	box-sizing: border-box;
 }
 
+input.error {
+	border: 1px solid red;
+}
+
 #resultContainer.success {
 	color: #0F0;
 }
@@ -35,3 +39,4 @@ input.form_field {
 #resultContainer.progress {
 	color: #FF0;
 }
+
