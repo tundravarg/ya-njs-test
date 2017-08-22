@@ -5,6 +5,12 @@
 
 
 
+$.ajaxSetup({
+	cache: false
+});
+
+
+
 $(() => {
 	$('#submitButton').click(() => {
 		var result = MyForm.validate();
@@ -61,6 +67,8 @@ function setResult(resultType, message) {
 		setResult('Internal error');
 		throw new Error('Some fields are not found');
 	}
+
+	$('#submitButton').attr('disabled', resultType == RESULT_CLASS.PROGRESS ? 'true' : false)
 
 	resultParagraph.css('visibility', 'visible');
 
@@ -152,11 +160,12 @@ var submitter = {
 	submit: function(data) {
 		var submitCount = ++this.submitCount;
 		var progressCount = 1;
-		var url = serverEmulator.getUrl();
+		$('#submitButton').attr('disabled', 'true')
 		function submit2() {
 			if (submitCount != this.submitCount) {
 				return;
 			}
+			var url = $('#myForm').attr('action')
 			$.get(url, (data) => {
 				var status = isNotNull(data.status) ? data.status.toLowerCase(data.status) : null;
 				var resultType = "";
@@ -190,21 +199,6 @@ var submitter = {
 			});
 		}
 		submit2.call(this);
-	}
-
-};
-
-
-
-var serverEmulator = {
-
-	URL_SUCCESS:  '/data/success.json',
-	URL_ERROR:    '/data/error.json',
-	URL_PROGRESS: '/data/progress.json',
-	URL_INVALID_1: '/data/invalid_1.json',
-
-	getUrl: function() {
-		return this.URL_SUCCESS;
 	}
 
 };
