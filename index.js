@@ -1,6 +1,7 @@
 'use strict';
 
 
+
 (function() {
 
 
@@ -55,7 +56,7 @@ function initComponents() {
 	components.resultField = $('#' + RESULT_FIELD_ID);
 
 	components.submitButton.click(() => {
-		var result = MyForm.validate();
+		var result = validate();
 		setFieldsState(result);
 		if (result.isValid) {
 			submit();
