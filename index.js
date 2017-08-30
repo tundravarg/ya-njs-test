@@ -185,36 +185,43 @@ const submitter = {
 			}
 			var url = components.form.attr('action')
 			$.get(url, (data) => {
-				var status = data.status ? data.status.toLowerCase(data.status) : '';
-				var resultType = "";
-				var result = "";
-				switch (status) {
-					case 'success':
-						resultType = RESULT_CLASS_SUCCESS;
-						result = 'Success';
-						break;
-					case 'error':
-						resultType = RESULT_CLASS_ERROR;
-						result = 'Error: ' + data.reason;
-						break;
-					case 'progress':
-						var timeout = data.timeout;
-						resultType = RESULT_CLASS_PROGRESS;
-						result = `In progress (${progressCount}): ${timeout}ms`;
-						progressCount++;
-						if (timeout) {
-							setTimeout(submit2.bind(this), Number(timeout));
-						}
-						break;
-					default:
-						resultType = RESULT_CLASS_ERROR;
-						result = 'Unknown status: ' + data.status;
-						break;
+				try {
+					var status = data.status ? data.status.toLowerCase(data.status) : '';
+					var resultType = "";
+					var result = "";
+					switch (status) {
+						case 'success':
+							resultType = RESULT_CLASS_SUCCESS;
+							result = 'Success';
+							break;
+						case 'error':
+							throw new Error(data.reason || 'Error');
+							break;
+						case 'progress':
+							var timeout = Number(data.timeout);
+							if (!timeout || timeout < 0) {
+								throw new Error('Invalid timeout: ' + data.timeout);
+							}
+							resultType = RESULT_CLASS_PROGRESS;
+							result = `In progress (${progressCount}): ${timeout}ms`;
+							progressCount++;
+							if (timeout) {
+								setTimeout(submit2.bind(this), Number(timeout));
+							}
+							break;
+						default:
+							throw new Error('Unknown status: ' + data.status);
+					}
+					setOutputFieldsState(resultType, result);
+				} catch (ex) {
+					error(ex.message);
 				}
-				setOutputFieldsState(resultType, result);
-			}).fail((e) => {
-				setOutputFieldsState(RESULT_CLASS_ERROR, 'Error in answer');
+			}).fail((r, s, m) => {
+				error('Error in answer: ' + m)
 			});
+		}
+		function error(message) {
+			setOutputFieldsState(RESULT_CLASS_ERROR, message || '');
 		}
 		submit2.call(this);
 	}
