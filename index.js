@@ -12,79 +12,105 @@ $.ajaxSetup({
 
 
 $(() => {
-	$('#submitButton').click(() => {
-		var result = MyForm.validate();
-
-		if (result.isValid) {
-			setResult(null);
-		} else {
-			setResult(RESULT_CLASS.ERROR, 'Wrong fields');
-		}
-		const fields = getFormFields();
-		Object.keys(fields).forEach((k) => {
-			const field = fields[k];
-			const name = field.attr('name');
-			if (result.errorFields.some(n => n == name)) {
-				field.addClass('error');
-			} else {
-				field.removeClass('error');
-			}
-		});
-
-		if (result.isValid) {
-			MyForm.submit();
-		}
-	});
+	initComponents();
+	window.MyForm = {
+		validate: validate, 
+		getData: getData,
+		setData: setData,
+		submit: submit,
+	};
 });
 
 
 
-function getFormFields() {
-	var fioField = $('input[name="fio"]');
-	var emailField = $('input[name="email"]');
-	var phoneField = $('input[name="phone"]');
-	if (!checkExists(fioField, emailField, phoneField)) {
-		setResult('Internal error');
-		throw new Error('Some fields are not found');
-	}
-	return {
-		fioField: fioField,
-		emailField: emailField,
-		phoneField: phoneField
-	};
+const FORM_ID = 'myForm';
+const FIO_FIELD_NAME = 'fio';
+const EMAIL_FIELD_NAME = 'email';
+const PHONE_FIELD_NAME = 'phone';
+const SUBMIT_BUTTON_ID = 'submitButton';
+const RESULT_PANEL_ID = 'resultParagraph';
+const RESULT_FIELD_ID = 'resultContainer';
+
+const RESULT_CLASS_SUCCESS = 'success';
+const RESULT_CLASS_PROGRESS = 'progress';
+const RESULT_CLASS_ERROR = 'error';
+
+
+
+const components = {
+	fioField: null,
+	emailField: null,
+	phoneField: null,
+	submitButton: null,
+	resultField: null,
 };
 
-var RESULT_CLASS = {
-	SUCCESS: 'success',
-	PROGRESS: 'progress',
-	ERROR: 'error'
-};
+function initComponents() {
+	components.form = $('#' + FORM_ID);
+	components.fioField = $('input[name="' + FIO_FIELD_NAME + '"]');
+	components.emailField = $('input[name="' + EMAIL_FIELD_NAME + '"]');
+	components.phoneField = $('input[name="' + PHONE_FIELD_NAME + '"]');
+	components.submitButton = $('#' + SUBMIT_BUTTON_ID);
+	components.resultPanel = $('#' + RESULT_PANEL_ID);
+	components.resultField = $('#' + RESULT_FIELD_ID);
 
-function setResult(resultType, message) {
-	var resultParagraph = $('#resultParagraph');
-	var resultContainer = $('#resultContainer');
-	if (!checkExists(resultParagraph, resultContainer)) {
-		setResult('Internal error');
-		throw new Error('Some fields are not found');
-	}
-
-	$('#submitButton').attr('disabled', resultType == RESULT_CLASS.PROGRESS ? 'true' : false)
-
-	resultParagraph.css('visibility', 'visible');
-
-	setRadioClass(resultContainer, Object.values(RESULT_CLASS), resultType);
-	resultContainer.html(message || '');
+	components.submitButton.click(() => {
+		var result = MyForm.validate();
+		setFieldsState(result);
+		if (result.isValid) {
+			submit();
+		}
+	});
 }
 
 
 
-const FIO_RE = /^\s*(\w+)\s+(\w+)\s+(\w+)\s*$/;
+function getData() {
+	return {
+		fio:   components.fioField.val(),
+		email: components.emailField.val(),
+		phone: components.phoneField.val()
+	};
+}
 
-const EMAIL_RE = /^[\w\.\-]+@(?:ya\.ru|yandex\.ru|yandex\.ua|yandex\.by|yandex\.kz|yandex\.com)$/;
+function setData(data) {
+	components.fioField.val(data.fio);
+	components.emailField.val(data.email);
+	components.phoneField.val(data.phone);
+}
 
-const PHONE_RE = /^\+7\(\d\d\d\)\d\d\d-\d\d-\d\d$/;
-function checkPhone(phone) {
-	if (!PHONE_RE.test(phone)) {
+
+
+function validate() {
+	const data = getData();
+
+	const errorFields = [];
+	if (!validateFIO(data.fio)) {
+		errorFields.push(FIO_FIELD_NAME);
+	}
+	if (!validateEMail(data.email)) {
+		errorFields.push(EMAIL_FIELD_NAME);
+	}
+	if (!validatePhone(data.phone)) {
+		errorFields.push(PHONE_FIELD_NAME);
+	}
+
+	return {
+		isValid: errorFields.length == 0,
+		errorFields: errorFields
+	};
+}
+
+function validateFIO(fio) {
+	return /^\s*(\w+)\s+(\w+)\s+(\w+)\s*$/.test(fio);
+}
+
+function validateEMail(email) {
+	return /^[\w\.\-]+@(?:ya\.ru|yandex\.ru|yandex\.ua|yandex\.by|yandex\.kz|yandex\.com)$/.test(email);
+}
+
+function validatePhone(phone) {
+	if (!/^\+7\(\d\d\d\)\d\d\d-\d\d-\d\d$/.test(phone)) {
 		return false;
 	}
 	var summa = 0;
@@ -99,89 +125,81 @@ function checkPhone(phone) {
 
 
 
-window.MyForm = {
+function setFieldsState(result) {
+	setInputFieldsState(result);
+	if (result.isValid) {
+		setOutputFieldsState(null);
+	} else {
+		setOutputFieldsState(RESULT_CLASS_ERROR, 'Wrong fields');
+	}
+}
 
-	validate: function() {
-		const data = this.getData();
-		
-		const errorFields = [];
-
-		{ // Validate fio
-			if (!FIO_RE.test(data.fio)) {
-				errorFields.push('fio');
-			}
+function setInputFieldsState(result) {
+	function setErrorClass(component, error) {
+		if (error) {
+			component.addClass('error');
+		} else {
+			component.removeClass('error');
 		}
-
-		{ // validate email
-			if (!EMAIL_RE.test(data.email)) {
-				errorFields.push('email');
-			}
-		}
-
-		{ // validate phone
-			if (!checkPhone(data.phone)) {
-				errorFields.push('phone');
-			}
-		}
-
-		return {isValid: errorFields.length == 0, errorFields: errorFields};
-	}, 
-	
-	getData: function() {
-		var fields = getFormFields();
-		return {
-			fio:   fields.fioField.val(),
-			email: fields.emailField.val(),
-			phone: fields.phoneField.val()
-		};
-	},
-
-	setData: function(data) {
-		var fields = getFormFields();
-		fields.fioField.val(data.fio);
-		fields.emailField.val(data.email);
-		fields.phoneField.val(data.phone);
-	},
-	
-	submit: function() {
-		var data = this.getData();
-//		this.setData({ fio: data.fio + '-1', email: data.email + '-2', phone: data.phone + '-3' });
-		submitter.submit(data);
 	}
 
-};
+	const errorFields = result.errorFields;
+	function checkAndSetErrorClass(component) {
+		const error = errorFields.some(n => n == component.attr('name'));
+		setErrorClass(component, error);
+	}
+
+	checkAndSetErrorClass(components.fioField);
+	checkAndSetErrorClass(components.emailField);
+	checkAndSetErrorClass(components.phoneField);
+}
+
+function setOutputFieldsState(result, message) {
+	components.submitButton.attr('disabled', result == RESULT_CLASS_PROGRESS ? 'true' : false)
+	components.resultPanel.css('visibility', result ? 'visible' : "invisible");
+
+	const resultField = components.resultField;
+	[RESULT_CLASS_SUCCESS, RESULT_CLASS_PROGRESS, RESULT_CLASS_ERROR].forEach(c => {
+		if (c == result) {
+			resultField.addClass(c);
+		} else {
+			resultField.removeClass(c);
+		}
+	});
+	resultField[0].textContent = message || '';
+}
 
 
 
-var submitter = {
+const submitter = {
 
 	submitCount: 0,
 
 	submit: function(data) {
 		var submitCount = ++this.submitCount;
 		var progressCount = 1;
-		$('#submitButton').attr('disabled', 'true')
+		components.submitButton.attr('disabled', 'true')
 		function submit2() {
 			if (submitCount != this.submitCount) {
 				return;
 			}
-			var url = $('#myForm').attr('action')
+			var url = components.form.attr('action')
 			$.get(url, (data) => {
-				var status = isNotNull(data.status) ? data.status.toLowerCase(data.status) : null;
+				var status = data.status ? data.status.toLowerCase(data.status) : '';
 				var resultType = "";
 				var result = "";
-				switch (data.status) {
+				switch (status) {
 					case 'success':
-						resultType = RESULT_CLASS.SUCCESS;
+						resultType = RESULT_CLASS_SUCCESS;
 						result = 'Success';
 						break;
 					case 'error':
-						resultType = RESULT_CLASS.ERROR;
+						resultType = RESULT_CLASS_ERROR;
 						result = 'Error: ' + data.reason;
 						break;
 					case 'progress':
 						var timeout = data.timeout;
-						resultType = RESULT_CLASS.PROGRESS;
+						resultType = RESULT_CLASS_PROGRESS;
 						result = `In progress (${progressCount}): ${timeout}ms`;
 						progressCount++;
 						if (timeout) {
@@ -189,13 +207,13 @@ var submitter = {
 						}
 						break;
 					default:
-						resultType = RESULT_CLASS.ERROR;
+						resultType = RESULT_CLASS_ERROR;
 						result = 'Unknown status: ' + data.status;
 						break;
 				}
-				setResult(resultType, entitifyString(result));
+				setOutputFieldsState(resultType, result);
 			}).fail((e) => {
-				setResult(RESULT_CLASS.ERROR, 'Error in answer');
+				setOutputFieldsState(RESULT_CLASS_ERROR, 'Error in answer');
 			});
 		}
 		submit2.call(this);
@@ -203,29 +221,8 @@ var submitter = {
 
 };
 
-
-
-function checkExists() {
-	return Array.from(arguments).every(e => !!e && e.length);
-}
-
-function isNotNull(obj) {
-	return typeof obj !== 'undefined' && obj != null;
-}
-
-function entitifyString(str) {
-	var p = document.createElement("p");
-	p.textContent = str;
-	return p.innerHTML;
-}
-
-function setRadioClass(jqElement, classes, klass) {
-	classes.forEach((c) => {
-		jqElement.removeClass(c);
-	});
-	if (klass) {
-		jqElement.addClass(klass);
-	}
+function submit() {
+	submitter.submit(getData());
 }
 
 
